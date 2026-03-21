@@ -1,0 +1,91 @@
+{
+  "projectType": "general",
+  "projectName": "Proyectos - Algoritmos y Puzzles",
+  "projectDescription": "A collection of small educational projects in C++ and Python covering matrix operations, AI search algorithms (BFS, DFS, heuristic), Sudoku solving, and classic recursive algorithms.",
+  "theme": "palm",
+  "primaryColor": "#3B82F6",
+  "lightColor": "#93C5FD",
+  "darkColor": "#1D4ED8",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Overview",
+        "groups": [
+          {
+            "group": "Introduction",
+            "pages": ["introduction"]
+          }
+        ]
+      },
+      {
+        "tab": "Projects",
+        "groups": [
+          {
+            "group": "Matrix Operations",
+            "pages": [
+              "projects/matrix-operations",
+              "projects/gauss-elimination"
+            ]
+          },
+          {
+            "group": "Search Algorithms",
+            "pages": [
+              "projects/8-puzzle",
+              "projects/sudoku"
+            ]
+          },
+          {
+            "group": "Basic Algorithms",
+            "pages": [
+              "projects/factorial",
+              "projects/fibonacci"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Concepts",
+        "groups": [
+          {
+            "group": "Algorithm Theory",
+            "pages": [
+              "concepts/bfs-dfs",
+              "concepts/heuristic-search",
+              "concepts/recursion"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "8-Puzzle solver with BFS, DFS, and heuristic (priority queue) search strategies",
+    "Sudoku solver using BFS and DFS with row, column, and 3x3 region validation",
+    "Matrix operations (addition, subtraction, multiplication) in Python with console menu",
+    "Gaussian elimination for solving systems of linear equations using NumPy",
+    "Recursive factorial implementation in both C++ and Python",
+    "Recursive Fibonacci sequence implementation in C++"
+  ],
+  "publicApiSurface": [
+    "puzzle::ingresarPuzzle(char mtz[3][3]) — static method to input a puzzle from keyboard",
+    "puzzle::imprimir() — display the 3x3 puzzle board",
+    "puzzle::evaluacion(puzzle h, puzzle m) — heuristic evaluation (misplaced tiles)",
+    "puzzle::mov_espacio_izquierda/derecha/arriba/abajo() — generate child states by moving the blank",
+    "problema_puzzles::Amplitud() — BFS search for 8-Puzzle",
+    "problema_puzzles::Profundidad() — DFS search for 8-Puzzle",
+    "problema_puzzles::Heuristica() — heuristic priority-queue search for 8-Puzzle",
+    "sudoku::verificarFila(char num, int fila) — check if number exists in a row",
+    "sudoku::verificarColumna(char num, int columna) — check if number exists in a column",
+    "sudoku::verificarRegion(char num, int region) — check if number exists in a 3x3 region",
+    "sudoku::verificarResolucion() — verify the Sudoku is fully and correctly solved",
+    "problemaSudoku::Amplitud() — BFS Sudoku solver",
+    "problemaSudoku::Profundidad() — DFS Sudoku solver",
+    "IngresarMatriz(T1, T2=None) — input a matrix from keyboard (Python)",
+    "MostrarMatriz(matriz) — print a matrix (Python)",
+    "SumarMatriz(matriz) — add a matrix to the result (Python)",
+    "RestarMatriz(matriz) — subtract a matrix from the result (Python)",
+    "MultiplicarMatriz(matriz, T1, T2) — multiply two matrices (Python)",
+    "factorial(n) — recursive factorial in C++ and Python",
+    "fibonacci(n) — recursive Fibonacci in C++"
+  ]
+}
