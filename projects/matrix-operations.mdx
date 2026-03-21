@@ -1,0 +1,304 @@
+---
+title: "Matrix operations"
+description: "Interactive Python console program for adding, subtracting, and multiplying matrices."
+---
+
+`OperarMatrices.py` provides a looping console menu that lets you perform three matrix operations: addition, subtraction, and multiplication. You enter matrix dimensions and values interactively, and the program prints the result before returning you to the menu.
+
+## How to run
+
+```bash
+python OperarMatrices.py
+```
+
+No external dependencies are required — the program uses only the Python standard library (`os`).
+
+## Menu overview
+
+When the program starts, you see the following menu on every iteration:
+
+```
+"     Operaciones con matrices     "
+
+"  1) Sumar                        "
+"  2) Restar                       "
+"  3) Multiplicar                  "
+"  0) Salir                        "
+```
+
+Enter `0` at any time to exit. After each operation, the terminal is cleared with `os.system('cls')` and the menu is shown again.
+
+## Functions
+
+<AccordionGroup>
+  <Accordion title="IngresarMatriz(T1, T2=None)">
+    Prompts you to fill a matrix element by element. When only `T1` is passed, it creates a square `T1 × T1` matrix. When both `T1` and `T2` are passed, it creates a rectangular `T1 × T2` matrix (T1 rows, T2 columns).
+
+    ```python
+    def IngresarMatriz(T1, T2=None):
+        if T2 == None:
+            matriz = [[0 for _ in range(T1)] for _ in range(T1)]
+            for i in range(T1):
+                for j in range(T1):
+                    matriz[i][j] = int(input(f"Ingrese la matriz en ({i},{j}): "))
+        else:
+            matriz = [[0 for _ in range(T2)] for _ in range(T1)]  # T1 filas, T2 columnas
+            for i in range(T1):
+                for j in range(T2):
+                    matriz[i][j] = int(input(f"Ingrese la matriz en ({i},{j}): "))
+        return matriz
+    ```
+  </Accordion>
+
+  <Accordion title="MostrarMatriz(matriz)">
+    Prints the result matrix with a header. The `*m` unpacking removes brackets and commas from each row for clean console output.
+
+    ```python
+    def MostrarMatriz(matriz):
+        print("*   Matriz resultante   *")
+        for m in matriz:
+            print(*m)
+    ```
+  </Accordion>
+
+  <Accordion title="SumarMatriz(matriz)">
+    Accumulates values from `matriz` into the shared `matrizRes` result matrix. Both matrices must be square with the same size `T`.
+
+    ```python
+    def SumarMatriz(matriz):
+        for i in range(T):
+            for j in range(T):
+                matrizRes[i][j] += matriz[i][j]
+    ```
+
+    <Note>
+      The first matrix in an addition or subtraction session is always passed to `SumarMatriz`, regardless of the selected operation. This seeds `matrizRes` with real values instead of operating against a zero matrix.
+    </Note>
+  </Accordion>
+
+  <Accordion title="RestarMatriz(matriz)">
+    Subtracts `matriz` values from `matrizRes`. Only called for matrices 2, 3, … in a subtraction session.
+
+    ```python
+    def RestarMatriz(matriz):
+        for i in range(T):
+            for j in range(T):
+                matrizRes[i][j] -= matriz[i][j]
+    ```
+  </Accordion>
+
+  <Accordion title="MultiplicarMatriz(matriz, T1, T2)">
+    Multiplies `Pmatriz` (the first matrix, stored as a global) by `matriz` (the second) and writes the result into `matrizRes`. Uses three nested loops implementing the standard dot-product algorithm.
+
+    ```python
+    def MultiplicarMatriz(matriz, T1, T2):
+        # T1 = rows of first matrix, T2 = columns of second matrix
+        # T2P = columns of first = rows of second (global)
+        for i in range(T1):       # rows of the first matrix
+            for j in range(T2):   # columns of the second matrix
+                res = 0
+                for k in range(T2P):
+                    res += Pmatriz[i][k] * matriz[k][j]
+                matrizRes[i][j] = res
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Operations
+
+<Tabs>
+  <Tab title="Addition">
+    ### How addition works
+
+    The program prompts for how many matrices to add (minimum 2), then the shared size `T`, and then collects each matrix one by one. The first matrix is always added to the zero-initialised `matrizRes`; subsequent matrices are also added.
+
+    <Note>
+      You must enter at least 2 matrices. The program will keep re-prompting if you enter a value less than 2.
+    </Note>
+
+    ### Walkthrough
+
+    <Steps>
+      <Step title="Select option 1">
+        ```
+        Seleccione una opcion: 1
+        ```
+      </Step>
+      <Step title="Enter the number of matrices">
+        ```
+        Ingrese el numero de matrices: 2
+        ```
+      </Step>
+      <Step title="Enter the matrix size">
+        ```
+        Suma de matrices...
+        Ingrese el tamaño: 2
+        ```
+      </Step>
+      <Step title="Fill in the first matrix">
+        ```
+        Ingrese la matriz No. 1:
+        Ingrese la matriz en (0,0): 1
+        Ingrese la matriz en (0,1): 2
+        Ingrese la matriz en (1,0): 3
+        Ingrese la matriz en (1,1): 4
+        ```
+      </Step>
+      <Step title="Fill in the second matrix">
+        ```
+        Ingrese la matriz No. 2:
+        Ingrese la matriz en (0,0): 5
+        Ingrese la matriz en (0,1): 6
+        Ingrese la matriz en (1,0): 7
+        Ingrese la matriz en (1,1): 8
+        ```
+      </Step>
+      <Step title="Read the result">
+        ```
+        *   Matriz resultante   *
+        6 8
+        10 12
+        ```
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="Subtraction">
+    ### How subtraction works
+
+    Subtraction follows exactly the same flow as addition. The only difference is that the second and subsequent matrices are passed to `RestarMatriz` instead of `SumarMatriz`. The result is `matrix1 - matrix2 - matrix3 - …`.
+
+    <Note>
+      You must enter at least 2 matrices. The program validates this before proceeding.
+    </Note>
+
+    ### Walkthrough
+
+    <Steps>
+      <Step title="Select option 2">
+        ```
+        Seleccione una opcion: 2
+        ```
+      </Step>
+      <Step title="Enter the number of matrices">
+        ```
+        Ingrese el numero de matrices: 2
+        ```
+      </Step>
+      <Step title="Enter the matrix size">
+        ```
+        Resta de matrices...
+        Ingrese el tamaño: 2
+        ```
+      </Step>
+      <Step title="Fill in the first matrix">
+        ```
+        Ingrese la matriz No. 1:
+        Ingrese la matriz en (0,0): 9
+        Ingrese la matriz en (0,1): 8
+        Ingrese la matriz en (1,0): 7
+        Ingrese la matriz en (1,1): 6
+        ```
+      </Step>
+      <Step title="Fill in the second matrix">
+        ```
+        Ingrese la matriz No. 2:
+        Ingrese la matriz en (0,0): 1
+        Ingrese la matriz en (0,1): 2
+        Ingrese la matriz en (1,0): 3
+        Ingrese la matriz en (1,1): 4
+        ```
+      </Step>
+      <Step title="Read the result">
+        ```
+        *   Matriz resultante   *
+        8 6
+        4 2
+        ```
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="Multiplication">
+    ### How multiplication works
+
+    Multiplication is limited to exactly two matrices. You provide the dimensions of each matrix separately, and the program validates the column-row rule before accepting input.
+
+    <Note>
+      The number of **columns of the first matrix** must equal the number of **rows of the second matrix**. If this condition is not met, the program prints an error and returns to the menu without showing a result.
+    </Note>
+
+    The result matrix has dimensions: rows of the first × columns of the second.
+
+    ### Dimension rule
+
+    | First matrix | Second matrix | Result matrix |
+    |---|---|---|
+    | `T1P × T2P` | `T1S × T2S` | `T1P × T2S` |
+    | Constraint: `T2P` must equal `T1S` | | |
+
+    ### Walkthrough
+
+    <Steps>
+      <Step title="Select option 3">
+        ```
+        Seleccione una opcion: 3
+        ```
+      </Step>
+      <Step title="Enter first matrix dimensions">
+        ```
+        Multiplicacion de matrices...
+        Ingrese el numero de filas de la primer matriz: 2
+        Ingrese el numero de columnas de la primer matriz: 3
+        ```
+      </Step>
+      <Step title="Enter second matrix dimensions">
+        ```
+        Ingrese el numero de filas de la segunda matriz: 3
+        Ingrese el numero de columnas de la segunda matriz: 2
+        ```
+      </Step>
+      <Step title="Fill in the first matrix (2×3)">
+        ```
+        Ingrese la primer matriz:
+        Ingrese la matriz en (0,0): 1
+        Ingrese la matriz en (0,1): 2
+        Ingrese la matriz en (0,2): 3
+        Ingrese la matriz en (1,0): 4
+        Ingrese la matriz en (1,1): 5
+        Ingrese la matriz en (1,2): 6
+        ```
+      </Step>
+      <Step title="Fill in the second matrix (3×2)">
+        ```
+        Ingrese la segunda matriz:
+        Ingrese la matriz en (0,0): 7
+        Ingrese la matriz en (0,1): 8
+        Ingrese la matriz en (1,0): 9
+        Ingrese la matriz en (1,1): 10
+        Ingrese la matriz en (2,0): 11
+        Ingrese la matriz en (2,1): 12
+        ```
+      </Step>
+      <Step title="Read the result (2×2)">
+        ```
+        *   Matriz resultante   *
+        58 64
+        139 154
+        ```
+      </Step>
+    </Steps>
+
+    <Tip>
+      Verify manually: row 0 of the result is `(1×7 + 2×9 + 3×11, 1×8 + 2×10 + 3×12)` = `(58, 64)`.
+    </Tip>
+  </Tab>
+</Tabs>
+
+## Important constraints
+
+| Operation | Constraint |
+|---|---|
+| Addition | Minimum 2 matrices; all must be the same square size `T × T` |
+| Subtraction | Minimum 2 matrices; all must be the same square size `T × T` |
+| Multiplication | Exactly 2 matrices; columns of first must equal rows of second |

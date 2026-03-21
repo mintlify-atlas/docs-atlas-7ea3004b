@@ -1,0 +1,312 @@
+---
+title: "8-puzzle solver"
+description: "Solve the classic 8-puzzle sliding tile problem using BFS, DFS, or a misplaced-tile heuristic."
+---
+
+The 8-puzzle is a 3×3 sliding tile game with tiles numbered 1–8 and one blank space. The goal is to move tiles into a target arrangement by sliding them into the blank. This program lets you define a custom initial and goal state — or use a built-in example — and then solve it with one of three search strategies.
+
+## Compile and run
+
+<Steps>
+  <Step title="Compile the source">
+    ```bash
+    g++ -o puzzle 8-PUZZLE.cpp
+    ```
+  </Step>
+  <Step title="Run the program">
+    ```bash
+    ./puzzle
+    ```
+  </Step>
+  <Step title="Choose a puzzle">
+    The first menu asks whether you want to enter your own puzzle or use the built-in example:
+
+    ```
+    Menu:
+     (1) Ingresar puzzle
+     (2) Usar puzzle de ejemplo
+     Ingrese una opcion:
+    ```
+
+    If you choose **option 1**, the program prompts you to enter 9 digits for the initial state and then 9 digits for the goal state. Enter `0` wherever the blank tile should be.
+
+    If you choose **option 2**, the predefined example is used (see [Example puzzle](#example-puzzle) below).
+  </Step>
+  <Step title="Choose a search algorithm">
+    The second menu selects the solver:
+
+    ```
+    Menu:
+     (1) Amplitud
+     (2) Profundidad
+     (3) Heuristica
+     Ingrese una opcion:
+    ```
+  </Step>
+</Steps>
+
+## Example puzzle
+
+The built-in example uses these two states:
+
+| | Col 0 | Col 1 | Col 2 |
+|---|---|---|---|
+| **Row 0** | 1 | 2 | 3 |
+| **Row 1** | 4 | 5 | 6 |
+| **Row 2** | 7 | 8 | _(blank)_ |
+
+**Goal state:**
+
+| | Col 0 | Col 1 | Col 2 |
+|---|---|---|---|
+| **Row 0** | _(blank)_ | 8 | 7 |
+| **Row 1** | 6 | 5 | 4 |
+| **Row 2** | 3 | 2 | 1 |
+
+In code:
+
+```cpp
+Inicial = puzzle('1', '2', '3', '4', '5', '6', '7', '8', ' ');
+Final   = puzzle(' ', '8', '7', '6', '5', '4', '3', '2', '1');
+```
+
+## Entering a custom puzzle
+
+The static method `ingresarPuzzle()` reads 9 digits from standard input, row by row. Digit `0` is treated as the blank tile:
+
+```cpp
+void puzzle::ingresarPuzzle(char mtz[3][3]) {
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            cin >> mtz[i][j];
+            if (mtz[i][j] == '0') { // Usamos el 0 como espacio vacio
+                mtz[i][j] = ' ';
+            }
+        }
+    }
+}
+```
+
+For example, to enter the initial state `1 2 3 / 4 0 6 / 7 8 5` type:
+
+```
+1 2 3 4 0 6 7 8 5
+```
+
+## Search algorithms
+
+<Tabs>
+  <Tab title="Amplitud (BFS)">
+    `Amplitud()` implements breadth-first search using a `std::list` as a FIFO queue. New child states are appended to the **back** of the list with `push_back`, and the current node is always taken from the **front** with `pop_front`. This guarantees the shortest path is found first.
+
+    A separate `historial` list tracks every state that has already been enqueued so that cycles are not revisited.
+
+    ```cpp
+    void problema_puzzles::Amplitud() {
+        list<puzzle> lista;
+        list<puzzle> historial;
+        // ...
+        lista.push_front(inicial);
+        historial.push_front(inicial);
+
+        while (!lista.empty() && !encontrado_meta) {
+            puzzle aux = lista.front();
+            // check goal ...
+            lista.pop_front();
+
+            hijo = aux.mov_espacio_izquierda();
+            if (!esta_historial(hijo, historial)) {
+                lista.push_back(hijo);      // enqueue at back — BFS
+                historial.push_back(hijo);
+            }
+            // derecha, arriba, abajo ...
+        }
+    }
+    ```
+
+    <Warning>
+      BFS explores states level by level, which can consume a large amount of memory for puzzles that require many moves to solve.
+    </Warning>
+  </Tab>
+  <Tab title="Profundidad (DFS)">
+    `Profundidad()` implements depth-first search. New children are pushed to the **front** of the list with `push_front`, so the most recently generated state is explored next. The expansion order is: abajo → arriba → derecha → izquierda (reversed from BFS).
+
+    ```cpp
+    void problema_puzzles::Profundidad() {
+        list<puzzle> lista;
+        list<puzzle> historial;
+        // ...
+        lista.push_front(inicial);
+        historial.push_front(inicial);
+
+        while (!lista.empty() && !encontrado_meta) {
+            puzzle aux = lista.front();
+            // check goal ...
+            lista.pop_front();
+
+            hijo = aux.mov_espacio_abajo();
+            if (!esta_historial(hijo, historial)) {
+                lista.push_front(hijo);     // push to front — DFS
+                historial.push_back(hijo);
+            }
+            // arriba, derecha, izquierda ...
+        }
+    }
+    ```
+
+    <Warning>
+      DFS may explore very deep branches before finding the goal and does not guarantee the shortest solution path.
+    </Warning>
+  </Tab>
+  <Tab title="Heuristica (best-first)">
+    `Heuristica()` uses a `std::priority_queue<puzzle>`. Before each child state is pushed, its `eval` field is set by calling `evaluacion()`, which counts the number of misplaced tiles (excluding the blank). The `operator<` on `puzzle` is reversed so that the state with the **lowest** eval score (fewest misplaced tiles) is popped first.
+
+    ```cpp
+    void problema_puzzles::Heuristica() {
+        priority_queue<puzzle> lista;
+        list<puzzle> historial;
+        // ...
+        lista.push(inicial);
+        historial.push_front(inicial);
+
+        while (!lista.empty() && !encontrado_meta) {
+            puzzle aux = lista.top();
+            // check goal ...
+            lista.pop();
+
+            hijo = aux.mov_espacio_abajo();
+            if (!esta_historial(hijo, historial)) {
+                hijo.eval = hijo.evaluacion(hijo, meta); // score before enqueue
+                lista.push(hijo);
+                historial.push_back(hijo);
+            }
+            // arriba, derecha, izquierda ...
+        }
+    }
+    ```
+
+    <Tip>
+      The heuristic solver typically reaches the goal in far fewer iterations than BFS or DFS because it always expands the state closest to the goal first.
+    </Tip>
+  </Tab>
+</Tabs>
+
+## The `evaluacion()` heuristic
+
+`evaluacion(puzzle h, puzzle m)` counts how many tiles in state `h` are in the wrong position relative to goal state `m`. The blank tile (`' '`) is excluded from the count:
+
+```cpp
+int puzzle::evaluacion(puzzle h, puzzle m) {
+    int iguales = 0;
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (h.matriz[i][j] != m.matriz[i][j] && h.matriz[i][j] != ' ') {
+                iguales++;
+            }
+        }
+    }
+    return iguales;
+}
+```
+
+A score of `0` means every tile is in its correct position — the puzzle is solved.
+
+## Solution output
+
+Once the goal state is found, the program prints the sequence of moves needed to reach it. Each move describes where the blank tile slides:
+
+```
+ruta:
+Mover espacio vacio hacia arriba
+Mover espacio vacio hacia la derecha
+Mover espacio vacio hacia abajo
+...
+```
+
+Internally, moves are encoded as integers stored in each state's `movimientos` list:
+
+| Code | Direction |
+|------|-----------|
+| `1`  | Arriba (up) |
+| `2`  | Abajo (down) |
+| `3`  | Derecha (right) |
+| `4`  | Izquierda (left) |
+
+## Class reference
+
+<AccordionGroup>
+  <Accordion title="class puzzle">
+    Represents a single board state.
+
+    **Private members**
+
+    | Member | Type | Description |
+    |--------|------|-------------|
+    | `matriz` | `char[3][3]` | The 3×3 tile grid. The blank is stored as `' '`. |
+    | `eval` | `int` | Heuristic score — number of misplaced tiles. Used by the priority queue. Defaults to `0`. |
+    | `columna` | `int` | Column index of the blank tile. |
+    | `fila` | `int` | Row index of the blank tile. |
+    | `movimientos` | `list<int>` | Ordered history of moves taken to reach this state. |
+
+    **Public methods**
+
+    | Method | Description |
+    |--------|-------------|
+    | `puzzle()` | Default constructor. Creates the state `1 2 3 / 4 5 6 / 7 8 _`. |
+    | `puzzle(char mtzUsuario[3][3])` | Constructs from a 3×3 char array. Calls `buscar()` to locate the blank. |
+    | `puzzle(char, char, char, char, char, char, char, char, char)` | Constructs from nine individual characters, row-major order. |
+    | `static void ingresarPuzzle(char mtz[3][3])` | Reads 9 digits from stdin; converts `'0'` to `' '` (blank). |
+    | `void imprimir()` | Prints the board in a formatted grid with borders. |
+    | `void buscar()` | Scans `matriz` to set `fila` and `columna` to the blank's position. |
+    | `int evaluacion(puzzle h, puzzle m)` | Returns the number of misplaced non-blank tiles in `h` vs. goal `m`. |
+    | `puzzle mov_espacio_izquierda()` | Returns a new state with the blank moved left (if possible). Appends `4` to `movimientos`. |
+    | `puzzle mov_espacio_derecha()` | Returns a new state with the blank moved right (if possible). Appends `3` to `movimientos`. |
+    | `puzzle mov_espacio_arriba()` | Returns a new state with the blank moved up (if possible). Appends `1` to `movimientos`. |
+    | `puzzle mov_espacio_abajo()` | Returns a new state with the blank moved down (if possible). Appends `2` to `movimientos`. |
+    | `bool operator<(const puzzle&)` | Reversed comparison (`eval > other.eval`) so the priority queue pops the lowest-score state first. |
+  </Accordion>
+  <Accordion title="class problema_puzzles">
+    Owns the initial and goal states and runs the search.
+
+    **Private members**
+
+    | Member | Type | Description |
+    |--------|------|-------------|
+    | `inicial` | `puzzle` | The starting board state. |
+    | `meta` | `puzzle` | The target board state. |
+
+    **Public methods**
+
+    | Method | Description |
+    |--------|-------------|
+    | `problema_puzzles(puzzle, puzzle)` | Constructor. Stores initial and goal states and prints both. |
+    | `bool esta_historial(puzzle, list<puzzle>)` | Returns `true` if the given state already exists in the history list (cell-by-cell comparison). |
+    | `void Amplitud()` | Runs BFS. Prints the frontier at each iteration and the move sequence on success. |
+    | `void Profundidad()` | Runs DFS. Prints the frontier at each iteration and the move sequence on success. |
+    | `void Heuristica()` | Runs best-first search. Prints the top state at each iteration and the move sequence on success. |
+  </Accordion>
+</AccordionGroup>
+
+## Movement methods
+
+All four movement methods follow the same pattern: they copy the current state, check whether the move is within bounds, swap the blank with the adjacent tile, update `fila`/`columna`, and append the move code to `movimientos`. If the blank is already at the boundary, the method returns an unchanged copy.
+
+```cpp
+puzzle puzzle::mov_espacio_izquierda() {
+    puzzle cambio(*this);
+    if (columna != 0) {
+        char aux;
+        aux = cambio.matriz[cambio.fila][cambio.columna - 1];
+        cambio.matriz[cambio.fila][cambio.columna - 1] = ' ';
+        cambio.matriz[cambio.fila][cambio.columna] = aux;
+        cambio.columna--;
+        cambio.movimientos = this->movimientos;
+        cambio.movimientos.push_back(4);
+    }
+    return cambio;
+}
+```
+
+<Note>
+  The three other movement methods (`mov_espacio_derecha`, `mov_espacio_arriba`, `mov_espacio_abajo`) follow the identical pattern, differing only in the boundary check and the direction of the swap.
+</Note>

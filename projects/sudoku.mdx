@@ -1,0 +1,279 @@
+---
+title: "Sudoku solver"
+description: "Solve a 9×9 Sudoku puzzle automatically using breadth-first or depth-first search."
+---
+
+This program solves a 9×9 Sudoku puzzle using classic AI search techniques. Given a partially filled board, it systematically tries every valid digit for the first empty cell, generates child states, and continues until it finds a complete, valid solution. Two solvers are provided — BFS (`Amplitud`) and DFS (`Profundidad`) — both using the same cell-expansion logic.
+
+<Note>
+  The initial board is hardcoded inside `main()`. To solve a different puzzle you must edit the source file and recompile.
+</Note>
+
+## Compile and run
+
+<Steps>
+  <Step title="Compile the source">
+    ```bash
+    g++ -o sudoku Sudoku.cpp
+    ```
+  </Step>
+  <Step title="Run the program">
+    ```bash
+    ./sudoku
+    ```
+  </Step>
+  <Step title="Read the output">
+    The program runs both solvers back-to-back. For each one it prints:
+
+    ```
+    Se encontro la resolucion con busqueda por amplitud en 42 iteraciones...
+    - - - - - - - - - - - - - - - - - - -
+    | 8 | 1 | 2 | 7 | 5 | 3 | 6 | 4 | 9 |
+    ...
+    ```
+  </Step>
+</Steps>
+
+## Initial board
+
+The puzzle hardcoded in `main()` is:
+
+```cpp
+char matrizAux[9][9] = {
+    { '8', ' ', ' ',   ' ', ' ', ' ',   ' ', ' ', ' ' },
+    { ' ', ' ', '3',   '6', ' ', ' ',   ' ', ' ', ' ' },
+    { ' ', '7', ' ',   ' ', '9', ' ',   '2', ' ', ' ' },
+
+    { ' ', '5', ' ',   ' ', ' ', '7',   ' ', ' ', ' ' },
+    { ' ', ' ', ' ',   ' ', '4', '5',   '7', ' ', ' ' },
+    { ' ', ' ', ' ',   '1', ' ', ' ',   ' ', '3', ' ' },
+
+    { ' ', ' ', '1',   ' ', ' ', ' ',   ' ', '6', '8' },
+    { ' ', ' ', '8',   '5', ' ', ' ',   ' ', '1', ' ' },
+    { ' ', '9', ' ',   ' ', ' ', ' ',   '4', ' ', ' ' }
+};
+```
+
+As a formatted grid (blank cells shown as `·`):
+
+```
+ 8 · ·  · · ·  · · ·
+ · · 3  6 · ·  · · ·
+ · 7 ·  · 9 ·  2 · ·
+
+ · 5 ·  · · 7  · · ·
+ · · ·  · 4 5  7 · ·
+ · · ·  1 · ·  · 3 ·
+
+ · · 1  · · ·  · 6 8
+ · · 8  5 · ·  · 1 ·
+ · 9 ·  · · ·  4 · ·
+```
+
+To use a different puzzle, replace the values in `matrizAux` before compiling. Use `' '` (a space character) for empty cells.
+
+## Search algorithms
+
+Both solvers share the same expansion strategy: find the **first empty cell** in row-major order, try digits `'1'` through `'9'`, and for each digit that passes all three validity checks, create a new `sudoku` state with that digit placed and add it to the list. Only the first empty cell is expanded per iteration.
+
+<Tabs>
+  <Tab title="Amplitud (BFS)">
+    `Amplitud()` uses a `std::list` as a FIFO queue. New states are appended to the **back** with `push_back`; the current state is taken from the **front** with `pop_front` and `lista.front()`.
+
+    ```cpp
+    void problemaSudoku::Amplitud() {
+        list<sudoku> lista;
+        lista.push_front(inicial);
+
+        while (!lista.empty() && !resuelto) {
+            sudoku aux = lista.front();
+            lista.pop_front();
+
+            if (aux.verificarResolucion()) {
+                cout << "Se encontro la resolucion con busqueda por amplitud en "
+                     << iteracion << " iteraciones..." << endl;
+                aux.imprimir();
+                resuelto = true;
+                break;
+            }
+
+            // Expand the first empty cell
+            for (int i = 0; i < 9 && !celdaVaciaEncontrada; i++) {
+                for (int j = 0; j < 9 && !celdaVaciaEncontrada; j++) {
+                    if (aux.matriz[i][j] == ' ') {
+                        for (char num = '1'; num <= '9'; num++) {
+                            int region = ((i / 3) * 3) + (j / 3) + 1;
+                            if (!aux.verificarFila(num, i) &&
+                                !aux.verificarColumna(num, j) &&
+                                !aux.verificarRegion(num, region)) {
+                                sudoku nuevo(aux.matriz);
+                                nuevo.matriz[i][j] = num;
+                                lista.push_back(nuevo); // enqueue at back — BFS
+                            }
+                        }
+                        celdaVaciaEncontrada = true;
+                    }
+                }
+            }
+            iteracion++;
+        }
+    }
+    ```
+
+    <Note>
+      BFS explores boards with the same number of filled cells before going deeper, so it tends to use significantly more memory than DFS on Sudoku inputs.
+    </Note>
+  </Tab>
+  <Tab title="Profundidad (DFS)">
+    `Profundidad()` uses the same `std::list` but treats it as a stack. The current state is taken from the **back** with `lista.back()` and `pop_back`, and new children are also appended to the **back** with `push_back`.
+
+    ```cpp
+    void problemaSudoku::Profundidad() {
+        list<sudoku> lista;
+        lista.push_front(inicial);
+
+        while (!lista.empty() && !resuelto) {
+            sudoku aux = lista.back();
+            lista.pop_back();
+
+            if (aux.verificarResolucion()) {
+                cout << "Se encontro la resolucion con busqueda por profundidad en "
+                     << iteracion << " iteraciones..." << endl;
+                aux.imprimir();
+                resuelto = true;
+                break;
+            }
+
+            // Expand the first empty cell
+            for (int i = 0; i < 9 && !celdaVaciaEncontrada; i++) {
+                for (int j = 0; j < 9 && !celdaVaciaEncontrada; j++) {
+                    if (aux.matriz[i][j] == ' ') {
+                        for (char num = '1'; num <= '9'; num++) {
+                            int region = ((i / 3) * 3) + (j / 3) + 1;
+                            if (!aux.verificarFila(num, i) &&
+                                !aux.verificarColumna(num, j) &&
+                                !aux.verificarRegion(num, region)) {
+                                sudoku nuevo(aux.matriz);
+                                nuevo.matriz[i][j] = num;
+                                lista.push_back(nuevo); // push to back — DFS
+                            }
+                        }
+                        celdaVaciaEncontrada = true;
+                    }
+                }
+            }
+            iteracion++;
+        }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Validation methods
+
+The three `verify*` methods are called before placing any digit to ensure the placement does not break Sudoku rules. Each returns `true` if `numAux` is **already present** in the given row, column, or region.
+
+```cpp
+bool sudoku::verificarFila(char numAux, int noFila);
+bool sudoku::verificarColumna(char numAux, int noColumna);
+bool sudoku::verificarRegion(char numAux, int region);
+```
+
+A digit is only placed when **all three** return `false` (meaning the digit does not yet appear in the row, column, or region).
+
+### Region numbering
+
+Regions are numbered 1–9 in reading order (left to right, top to bottom):
+
+```
+| 1 | 2 | 3 |
+| 4 | 5 | 6 |
+| 7 | 8 | 9 |
+```
+
+The mapping from region number to grid coordinates is:
+
+| Region | Rows | Columns |
+|--------|------|---------|
+| 1 | 0–2 | 0–2 |
+| 2 | 0–2 | 3–5 |
+| 3 | 0–2 | 6–8 |
+| 4 | 3–5 | 0–2 |
+| 5 | 3–5 | 3–5 |
+| 6 | 3–5 | 6–8 |
+| 7 | 6–8 | 0–2 |
+| 8 | 6–8 | 3–5 |
+| 9 | 6–8 | 6–8 |
+
+The solver computes the region for any cell `(i, j)` with:
+
+```cpp
+int region = ((i / 3) * 3) + (j / 3) + 1;
+```
+
+### `verificarResolucion()`
+
+Checks that every row, column, and region contains each of the digits `'1'` through `'9'` exactly once. Returns `true` only when all 27 checks pass:
+
+```cpp
+bool sudoku::verificarResolucion() {
+    for (int fila = 0; fila < 9; fila++)
+        for (char num = '1'; num <= '9'; num++)
+            if (!verificarFila(num, fila)) return false;
+
+    for (int col = 0; col < 9; col++)
+        for (char num = '1'; num <= '9'; num++)
+            if (!verificarColumna(num, col)) return false;
+
+    for (int region = 1; region <= 9; region++)
+        for (char num = '1'; num <= '9'; num++)
+            if (!verificarRegion(num, region)) return false;
+
+    return true;
+}
+```
+
+## Class reference
+
+<AccordionGroup>
+  <Accordion title="class sudoku">
+    Represents a single 9×9 board state.
+
+    **Private members**
+
+    | Member | Type | Description |
+    |--------|------|-------------|
+    | `matriz` | `char[9][9]` | The 81-cell board. Empty cells are stored as `' '`. |
+    | `F_Inicio` | `int` | Row offset used internally by `verificarRegion()`. |
+    | `C_Inicio` | `int` | Column offset used internally by `verificarRegion()`. |
+
+    **Public methods**
+
+    | Method | Description |
+    |--------|-------------|
+    | `sudoku()` | Default constructor. Fills all 81 cells with `' '`. |
+    | `sudoku(char mtzUsuario[9][9])` | Constructs from an existing 9×9 char array. |
+    | `void imprimir()` | Prints the board with row separators and column pipes. |
+    | `bool verificarFila(char numAux, int noFila)` | Returns `true` if `numAux` is already in row `noFila`. |
+    | `bool verificarColumna(char numAux, int noColumna)` | Returns `true` if `numAux` is already in column `noColumna`. |
+    | `bool verificarRegion(char numAux, int region)` | Returns `true` if `numAux` is already in the 3×3 region numbered 1–9. |
+    | `bool verificarResolucion()` | Returns `true` if every row, column, and region contains `'1'`–`'9'`. |
+  </Accordion>
+  <Accordion title="class problemaSudoku">
+    Owns the initial board and runs the search.
+
+    **Private members**
+
+    | Member | Type | Description |
+    |--------|------|-------------|
+    | `inicial` | `sudoku` | The starting board state passed to the constructor. |
+
+    **Public methods**
+
+    | Method | Description |
+    |--------|-------------|
+    | `problemaSudoku(sudoku)` | Constructor. Stores the initial state and prints the board. |
+    | `void Amplitud()` | Runs BFS. Prints the solved board and iteration count when a solution is found. |
+    | `void Profundidad()` | Runs DFS. Prints the solved board and iteration count when a solution is found. |
+  </Accordion>
+</AccordionGroup>

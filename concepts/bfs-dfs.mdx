@@ -1,0 +1,130 @@
+---
+title: "BFS and DFS"
+description: "How breadth-first and depth-first search are implemented in this project using a shared std::list structure."
+---
+
+Breadth-first search (BFS) and depth-first search (DFS) are the two fundamental strategies for exploring a state space. Both algorithms appear in this project—in the [8-Puzzle](/projects/8-puzzle) and [Sudoku](/projects/sudoku) solvers—and they share almost identical code. The only difference between them is **where a new child state is inserted into the list**.
+
+<Tabs>
+  <Tab title="BFS — Amplitud">
+    BFS explores states level by level. Before diving deeper into any branch, it fully expands every state at the current depth. This guarantees that the first time you reach the goal, you have taken the shortest possible path.
+
+    Internally, the `lista` behaves as a **queue (FIFO)**:
+    - New children are appended to the **back** with `lista.push_back(hijo)`
+    - The next state to expand is always taken from the **front** with `lista.front()` / `lista.pop_front()`
+
+    Because BFS keeps all frontier states in memory at once, it uses significantly more memory than DFS as the search tree grows.
+
+    ```cpp
+    // From Amplitud() in 8-PUZZLE.cpp
+    hijo = aux.mov_espacio_izquierda();
+    if (!esta_historial(hijo, historial)) {
+        lista.push_back(hijo);      // <-- appended to the BACK (queue)
+        historial.push_back(hijo);
+    }
+    hijo = aux.mov_espacio_derecha();
+    if (!esta_historial(hijo, historial)) {
+        lista.push_back(hijo);
+        historial.push_back(hijo);
+    }
+    // ... same pattern for arriba / abajo
+    ```
+  </Tab>
+  <Tab title="DFS — Profundidad">
+    DFS dives as deep as possible along a single branch before backtracking. It does not guarantee the shortest path, but it uses far less memory because only the current path needs to be held in the frontier.
+
+    Internally, the `lista` behaves as a **stack (LIFO)**:
+    - New children are prepended to the **front** with `lista.push_front(hijo)`
+    - The next state to expand is also taken from the **front** with `lista.front()` / `lista.pop_front()`
+
+    ```cpp
+    // From Profundidad() in 8-PUZZLE.cpp
+    hijo = aux.mov_espacio_abajo();
+    if (!esta_historial(hijo, historial)) {
+        lista.push_front(hijo);     // <-- prepended to the FRONT (stack)
+        historial.push_back(hijo);
+    }
+    hijo = aux.mov_espacio_arriba();
+    if (!esta_historial(hijo, historial)) {
+        lista.push_front(hijo);
+        historial.push_back(hijo);
+    }
+    // ... same pattern for derecha / izquierda
+    ```
+  </Tab>
+</Tabs>
+
+## How the shared loop works
+
+Both `Amplitud()` and `Profundidad()` follow the same outer loop. At each iteration they:
+
+<Steps>
+  <Step title="Peek at the front of the list">
+    ```cpp
+    puzzle aux = lista.front();
+    ```
+    In BFS this is the oldest unexpanded state (the shallowest). In DFS it is the most recently added state (the deepest).
+  </Step>
+  <Step title="Check whether the goal has been reached">
+    The algorithm compares every cell of `aux.matriz` against `meta.matriz`. If all nine cells match, the search stops and the move history is printed.
+  </Step>
+  <Step title="Expand the current state">
+    `lista.pop_front()` removes the current state, then up to four children are generated (move blank left, right, up, down). Each child is inserted at the **back** (BFS) or **front** (DFS) only if it has not been seen before.
+  </Step>
+</Steps>
+
+## Avoiding repeated states with `esta_historial()`
+
+Without cycle detection, both algorithms would loop forever on the 8-Puzzle (you can always undo the last move). The `esta_historial()` function prevents this by keeping a separate `historial` list and checking each candidate child before inserting it.
+
+```cpp
+// From problema_puzzles in 8-PUZZLE.cpp
+bool problema_puzzles::esta_historial(puzzle x, list<puzzle> historial) {
+    list<puzzle>::iterator indice;
+    for (indice = historial.begin(); indice != historial.end(); indice++) {
+        bool iguales = true;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (x.matriz[i][j] != indice->matriz[i][j]) {
+                    iguales = false;
+                    break;
+                }
+            }
+            if (!iguales) break;
+        }
+        if (iguales) return true;
+    }
+    return false;
+}
+```
+
+The function does a cell-by-cell comparison of the candidate puzzle against every previously visited state. If any stored state matches, the candidate is discarded.
+
+<Note>
+  The `historial` list is separate from `lista`. `lista` is the active frontier (states yet to be expanded); `historial` is the complete record of every state that has ever been enqueued, used solely for the cycle check.
+</Note>
+
+## BFS vs DFS comparison
+
+| Property | BFS (Amplitud) | DFS (Profundidad) |
+|---|---|---|
+| Data structure | Queue — `push_back` / `front` | Stack — `push_front` / `front` |
+| Explores | Level by level | Depth-first along one branch |
+| Finds shortest path? | Yes | Not guaranteed |
+| Memory usage | High — keeps entire frontier | Low — keeps only current path |
+| Risk of infinite loop | Low (with history) | Low (with history) |
+| Best when | Path length matters | Memory is limited |
+
+## Where each is used in this project
+
+**8-Puzzle** (`8-PUZZLE.cpp`)
+- `Amplitud()` — BFS over 8-Puzzle states; guarantees the minimum number of moves
+- `Profundidad()` — DFS over 8-Puzzle states; may find a solution faster in memory but with more moves
+
+**Sudoku** (`Sudoku.cpp`)
+- `Amplitud()` — BFS expanding one empty cell at a time; inserts candidate boards with `lista.push_back`
+- `Profundidad()` — DFS; reads from the **back** of the list with `lista.back()` / `lista.pop_back()` and also inserts at the back, making the `std::list` act as a stack
+
+<Tip>
+  For the Sudoku solver the DFS variant is typically much faster in practice. Because Sudoku constraints propagate immediately, going deep quickly eliminates dead ends rather than holding thousands of partial boards in memory.
+</Tip>

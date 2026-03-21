@@ -1,0 +1,124 @@
+---
+title: "Heuristic search"
+description: "How the 8-Puzzle uses an evaluation function and a priority queue to find solutions faster than blind BFS or DFS."
+---
+
+BFS and DFS treat every unexpanded state equally—they have no way to prefer a state that looks closer to the goal. Heuristic search adds an **evaluation function** that scores each state, then always expands the most promising one first. In the [8-Puzzle](/projects/8-puzzle) this is implemented in the `Heuristica()` method of `problema_puzzles`.
+
+## The evaluation function
+
+The `evaluacion()` function counts how many tiles are in the wrong position compared to the goal state, ignoring the blank space.
+
+```cpp
+// From 8-PUZZLE.cpp
+int puzzle::evaluacion(puzzle h, puzzle m) {
+    int iguales = 0;
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (h.matriz[i][j] != m.matriz[i][j] && h.matriz[i][j] != ' ') {
+                iguales++;
+            }
+        }
+    }
+    return iguales;
+}
+```
+
+A perfectly solved puzzle returns `0`. A puzzle with all eight tiles out of place returns `8`. Lower is better.
+
+<Note>
+  The blank tile (`' '`) is deliberately excluded from the count. Moving the blank is just a mechanism—what matters is where the numbered tiles end up.
+</Note>
+
+## The priority queue and `operator<`
+
+`Heuristica()` replaces the `std::list` used by BFS/DFS with a `std::priority_queue<puzzle>`. A `priority_queue` always gives you the element with the **highest** priority first, which by default means the largest value.
+
+Because a lower evaluation score is better, the `operator<` is intentionally inverted:
+
+```cpp
+// From the puzzle class in 8-PUZZLE.cpp
+bool operator<(const puzzle& other) const {
+    return eval > other.eval;
+}
+```
+
+Reading this aloud: "`*this` is considered less than `other` when `*this` has a **higher** eval score." A higher eval score means more tiles out of place, which means lower priority. The effect is that the puzzle with the **fewest misplaced tiles** always surfaces at the top of the queue.
+
+<Tip>
+  This inverted comparator pattern is common in C++ when you need a min-heap using `std::priority_queue`, which is a max-heap by default.
+</Tip>
+
+## How `Heuristica()` runs
+
+<Steps>
+  <Step title="Push the initial state">
+    The starting puzzle is pushed onto the priority queue with its evaluation score (typically computed before insertion for children; the initial state starts with `eval = 0` by default).
+
+    ```cpp
+    lista.push(inicial);
+    historial.push_front(inicial);
+    ```
+  </Step>
+  <Step title="Pop the best state">
+    Each iteration takes the state with the lowest evaluation score—the one closest to the goal.
+
+    ```cpp
+    puzzle aux = lista.top();
+    ```
+  </Step>
+  <Step title="Check for the goal">
+    The same cell-by-cell comparison used in BFS and DFS checks whether `aux` matches `meta`. If it does, the algorithm stops and prints the move sequence.
+  </Step>
+  <Step title="Expand and score children">
+    Up to four children are generated. Each new state passes through `esta_historial()` to avoid revisiting, then receives its evaluation score before being pushed.
+
+    ```cpp
+    hijo = aux.mov_espacio_abajo();
+    if (!esta_historial(hijo, historial)) {
+        hijo.eval = hijo.evaluacion(hijo, meta);  // score the child
+        lista.push(hijo);                          // priority queue re-sorts automatically
+        historial.push_back(hijo);
+    }
+    hijo = aux.mov_espacio_arriba();
+    if (!esta_historial(hijo, historial)) {
+        hijo.eval = hijo.evaluacion(hijo, meta);
+        lista.push(hijo);
+        historial.push_back(hijo);
+    }
+    // ... same for derecha / izquierda
+    ```
+
+    The `priority_queue` re-sorts on every `push`, so the best child is always at the top for the next iteration.
+  </Step>
+</Steps>
+
+## Why heuristic search is faster in practice
+
+Consider the predefined example in `main()`:
+
+```cpp
+Inicial = puzzle('1', '2', '3', '4', '5', '6', '7', '8', ' ');
+Final   = puzzle(' ', '8', '7', '6', '5', '4', '3', '2', '1');
+```
+
+The initial and goal states differ by all eight numbered tiles. BFS must explore states layer by layer and will expand a very large number of nodes before finding the solution. DFS may stumble onto it quickly or wander deep into a long dead-end path. Heuristic search immediately focuses on states where tiles are moving into their correct positions, skipping large parts of the search space.
+
+<Note>
+  The heuristic used here—counting misplaced tiles—is called the **Hamming distance**. It is an **admissible** heuristic for the 8-Puzzle because it never overestimates the number of moves needed (you need at least one move per misplaced tile).
+</Note>
+
+## BFS / DFS vs heuristic search
+
+| Property | BFS | DFS | Heuristic |
+|---|---|---|---|
+| Expansion order | Shallowest first | Deepest first | Best score first |
+| Finds shortest path? | Yes | Not guaranteed | Not guaranteed (greedy) |
+| Memory usage | High | Low | Medium |
+| Speed on hard puzzles | Slow | Unpredictable | Fast |
+| Requires evaluation function? | No | No | Yes |
+| Data structure | `std::list` as queue | `std::list` as stack | `std::priority_queue` |
+
+<Warning>
+  The `Heuristica()` implementation is a **greedy best-first search**, not A*. It does not account for the cost already spent to reach a state (the `g` component of A*), so it does not guarantee the shortest solution path. It will, however, find *a* solution significantly faster than BFS for most 8-Puzzle configurations.
+</Warning>

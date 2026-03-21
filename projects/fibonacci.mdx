@@ -1,0 +1,104 @@
+---
+title: "Recursive Fibonacci"
+description: "A recursive C++ implementation of the Fibonacci sequence."
+---
+
+The Fibonacci sequence is defined by the recurrence:
+
+```
+F(1) = 1
+F(2) = 1
+F(n) = F(n-1) + F(n-2)  for n > 2
+```
+
+Each term is the sum of the two terms before it: 1, 1, 2, 3, 5, 8, 13, 21, …
+
+## Implementation
+
+```cpp FibonacciRecursivo.cpp
+#include <bits/stdc++.h>
+
+using namespace std;
+
+long fibonacci (int n){
+    if (n == 1 || n == 2)
+        return 1;
+    return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n;
+    cin >> n;
+    cout << fibonacci(n);
+    return 0;
+}
+```
+
+### I/O optimizations
+
+The `main` function disables synchronization between C and C++ I/O streams (`ios_base::sync_with_stdio(false)`) and unties `cin` from `cout` (`cin.tie(nullptr)`). These two lines reduce I/O overhead and are standard practice in competitive programming.
+
+### Return type
+
+The `fibonacci` function returns `long` rather than `int`. This lets it represent values up to at least 2,147,483,647 on 32-bit `long` platforms and up to 9,223,372,036,854,775,807 on 64-bit platforms, safely covering the typical range of Fibonacci inputs.
+
+## Recursive logic
+
+- **Base case** — when `n == 1` or `n == 2`, the function returns `1` directly.
+- **Recursive case** — for `n > 2`, the function returns the sum of the two preceding Fibonacci values by calling itself twice: `fibonacci(n - 1) + fibonacci(n - 2)`.
+
+For `n = 5` the call tree looks like:
+
+```
+fibonacci(5)
+  fibonacci(4)              fibonacci(3)
+    fibonacci(3)  fibonacci(2)  fibonacci(2)  fibonacci(1)
+      fibonacci(2) fibonacci(1)
+```
+
+Each leaf eventually hits a base case and returns `1`.
+
+## How to compile and run
+
+<Steps>
+  <Step title="Compile the source file">
+    ```bash
+    g++ -o fibonacci FibonacciRecursivo.cpp
+    ```
+  </Step>
+  <Step title="Run the program">
+    ```bash
+    ./fibonacci
+    ```
+    Type a positive integer and press Enter. The program prints the corresponding Fibonacci number.
+
+    Alternatively, combine both steps in one command:
+
+    ```bash
+    g++ -o fibonacci FibonacciRecursivo.cpp && ./fibonacci
+    ```
+  </Step>
+</Steps>
+
+## Example values
+
+| Input (`n`) | Output `F(n)` |
+|-------------|---------------|
+| 1           | 1             |
+| 2           | 1             |
+| 5           | 5             |
+| 10          | 55            |
+| 20          | 6765          |
+
+## Complexity and limitations
+
+<Note>
+The `fibonacci` function recomputes the same sub-problems many times. For example, `fibonacci(5)` calls `fibonacci(3)` twice and `fibonacci(2)` three times. This repeated work makes the algorithm's time complexity **O(2^n)**.
+</Note>
+
+<Warning>
+For large values of `n` the naive recursive implementation becomes prohibitively slow. `fibonacci(50)` requires over one trillion calls. If you need Fibonacci for large `n`, use memoization, dynamic programming, or the matrix exponentiation method to bring complexity down to O(n) or O(log n).
+</Warning>

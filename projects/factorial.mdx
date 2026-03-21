@@ -1,0 +1,102 @@
+---
+title: "Recursive factorial"
+description: "Recursive implementations of the factorial function in C++ and Python."
+---
+
+The factorial of a non-negative integer `n`, written `n!`, is the product of every positive integer up to `n`:
+
+```
+n! = n × (n-1) × (n-2) × ... × 1
+```
+
+By definition, `0! = 1`. Factorial appears throughout combinatorics, probability, and algorithm analysis.
+
+## Implementations
+
+Both versions use the same recursive strategy: return `1` for the base cases `n == 0` and `n == 1`, and multiply `n` by the factorial of `n - 1` for every other input.
+
+<CodeGroup>
+
+```cpp FactorialRecursivo.cpp
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int n;
+
+int factorial(int n){
+    return (n == 1 || n == 0) ? 1 : n * factorial(n-1);
+}
+
+int main(){
+    cout << "Ingresa un numero: ";
+    cin >> n;
+    cout << factorial(n);
+    return 0;
+}
+```
+
+```python FactorialRecursivo.py
+def factorial(n):
+    if n == 0 or n == 1:  # Caso base
+        return 1
+    else:
+        return n * factorial(n - 1)  # Llamada recursiva
+
+n = int(input("Ingrese un numero: "))
+print(factorial(n))
+```
+
+</CodeGroup>
+
+## Recursive logic
+
+The function reduces the problem by one at every call:
+
+- **Base case** — when `n == 0` or `n == 1`, the function returns `1` immediately without making another call.
+- **Recursive case** — for any `n > 1`, the function returns `n * factorial(n - 1)`, deferring the rest of the computation down the call stack.
+
+For `n = 5` the call chain looks like:
+
+```
+factorial(5)
+  → 5 * factorial(4)
+       → 4 * factorial(3)
+            → 3 * factorial(2)
+                 → 2 * factorial(1)
+                      → 1
+```
+
+The stack then unwinds, multiplying each value on the way back: `1 → 2 → 6 → 24 → 120`.
+
+## How to run
+
+<Steps>
+  <Step title="Compile and run the C++ version">
+    ```bash
+    g++ -o factorial FactorialRecursivo.cpp && ./factorial
+    ```
+    You will be prompted to enter a number. The program prints the result and exits.
+  </Step>
+  <Step title="Run the Python version">
+    ```bash
+    python3 FactorialRecursivo.py
+    ```
+    You will be prompted to enter a number. The program prints the result and exits.
+  </Step>
+</Steps>
+
+## Example values
+
+| Input (`n`) | Output (`n!`) |
+|-------------|---------------|
+| 0           | 1             |
+| 1           | 1             |
+| 5           | 120           |
+| 10          | 3628800       |
+
+## Limitations
+
+<Warning>
+Naive recursion pushes one stack frame for each decrement of `n`. For large values of `n` this exhausts the call stack and causes a **stack overflow**. The C++ version also uses `int`, which overflows for `n ≥ 13`. If you need to handle large inputs, consider an iterative approach or arbitrary-precision arithmetic.
+</Warning>

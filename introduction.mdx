@@ -1,0 +1,74 @@
+---
+title: "Proyectos - Algoritmos y Puzzles"
+description: "A collection of small educational programs in C++ and Python exploring search algorithms, matrix operations, and classic recursion."
+---
+
+# Proyectos
+
+This repository contains a set of small, self-contained programs built for learning and practice. Each project focuses on a specific algorithm or programming concept, implemented from scratch without external frameworks.
+
+The projects span two languages — **C++** for performance-sensitive search algorithms and **Python** for interactive console programs — covering topics from AI search strategies to linear algebra and classic recursion.
+
+<CardGroup cols={2}>
+  <Card title="8-Puzzle Solver" icon="puzzle-piece" href="/projects/8-puzzle">
+    Solve the classic 8-puzzle using BFS, DFS, and heuristic search with a full interactive menu.
+  </Card>
+  <Card title="Sudoku Solver" icon="table-cells" href="/projects/sudoku">
+    Solve a 9x9 Sudoku board using breadth-first and depth-first search strategies.
+  </Card>
+  <Card title="Matrix Operations" icon="matrix" href="/projects/matrix-operations">
+    Add, subtract, and multiply matrices through an interactive Python console menu.
+  </Card>
+  <Card title="Gauss Elimination" icon="function" href="/projects/gauss-elimination">
+    Solve systems of linear equations using Gaussian elimination with NumPy.
+  </Card>
+  <Card title="Factorial" icon="arrow-turn-down-right" href="/projects/factorial">
+    Recursive factorial implementation in both C++ and Python.
+  </Card>
+  <Card title="Fibonacci" icon="wave-sine" href="/projects/fibonacci">
+    Recursive Fibonacci sequence implementation in C++.
+  </Card>
+</CardGroup>
+
+## What's inside
+
+<AccordionGroup>
+  <Accordion title="Search algorithm projects (C++)">
+    The **8-Puzzle** and **Sudoku** solvers demonstrate three fundamental search strategies:
+
+    - **BFS (Breadth-First Search)** — explores all states level by level, guaranteed to find the shortest path
+    - **DFS (Depth-First Search)** — explores deeply along a branch before backtracking, uses less memory
+    - **Heuristic search** — uses a priority queue and an evaluation function to reach the goal faster (8-Puzzle only)
+
+    Both projects use class-based design in C++ with state representation, history tracking to avoid cycles, and step-by-step solution output.
+  </Accordion>
+  <Accordion title="Matrix and linear algebra projects (Python)">
+    **Matrix Operations** provides a looping console menu for addition, subtraction, and multiplication of matrices of any size.
+
+    **Gauss Elimination** accepts a coefficient matrix and result vector from the user and solves the system using `numpy.linalg.solve`.
+  </Accordion>
+  <Accordion title="Basic recursive algorithms (C++ and Python)">
+    **Factorial** and **Fibonacci** demonstrate classic recursion patterns. Both are implemented in their simplest recursive form — ideal as a reference for understanding base cases and recursive calls.
+  </Accordion>
+</AccordionGroup>
+
+## Language breakdown
+
+| Language | Files | Purpose |
+|----------|-------|---------|
+| C++ | `8-PUZZLE.cpp`, `Sudoku.cpp`, `Algoritmos sencillos/FactorialRecursivo.cpp`, `Algoritmos sencillos/FibonacciRecursivo.cpp` | Search algorithms and recursive math |
+| Python | `OperarMatrices.py`, `GaussSimple.py`, `Algoritmos sencillos/FactorialRecursivo.py` | Interactive console programs and NumPy |
+
+## Concepts covered
+
+<CardGroup cols={3}>
+  <Card title="BFS & DFS" icon="sitemap" href="/concepts/bfs-dfs">
+    Graph traversal fundamentals
+  </Card>
+  <Card title="Heuristic search" icon="star" href="/concepts/heuristic-search">
+    Priority-queue driven search
+  </Card>
+  <Card title="Recursion" icon="rotate" href="/concepts/recursion">
+    Base cases and recursive calls
+  </Card>
+</CardGroup>

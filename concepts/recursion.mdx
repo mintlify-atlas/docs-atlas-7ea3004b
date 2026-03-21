@@ -1,0 +1,109 @@
+---
+title: "Recursion"
+description: "How recursion works, illustrated by the factorial and Fibonacci implementations in this project."
+---
+
+A recursive function solves a problem by calling itself on a smaller version of the same problem. Each call reduces the input until it hits a **base case**—a condition small enough to answer directly—at which point the calls unwind and combine their results.
+
+Every correct recursive function needs exactly two things:
+
+1. **Base case** — the stopping condition. Without it the function calls itself forever and crashes.
+2. **Recursive case** — the step that calls the function again with a strictly smaller input, moving toward the base case.
+
+## Factorial
+
+The factorial of `n` (written `n!`) is the product of all integers from 1 to `n`. It is defined recursively as:
+
+- `0! = 1` and `1! = 1` (base cases)
+- `n! = n × (n-1)!` (recursive case)
+
+<CodeGroup>
+
+```cpp C++
+// FactorialRecursivo.cpp
+int factorial(int n) {
+    return (n == 1 || n == 0) ? 1 : n * factorial(n - 1);
+}
+
+int main() {
+    cout << "Ingresa un numero: ";
+    cin >> n;
+    cout << factorial(n);
+    return 0;
+}
+```
+
+```python Python
+# FactorialRecursivo.py
+def factorial(n):
+    if n == 0 or n == 1:  # Caso base
+        return 1
+    else:
+        return n * factorial(n - 1)  # Llamada recursiva
+
+n = int(input("Ingrese un numero: "))
+print(factorial(n))
+```
+
+</CodeGroup>
+
+The C++ version uses a ternary operator; the Python version uses an explicit `if/else`. Both encode the same logic: if `n` is 0 or 1 return 1 immediately, otherwise multiply `n` by the factorial of `n-1`.
+
+## Fibonacci
+
+The Fibonacci sequence starts `1, 1, 2, 3, 5, 8, …`. Each number is the sum of the two before it:
+
+- `fibonacci(1) = 1` and `fibonacci(2) = 1` (base cases)
+- `fibonacci(n) = fibonacci(n-1) + fibonacci(n-2)` (recursive case)
+
+```cpp
+// FibonacciRecursivo.cpp
+long fibonacci(int n) {
+    if (n == 1 || n == 2)
+        return 1;
+    return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+int main() {
+    int n;
+    cin >> n;
+    cout << fibonacci(n);
+    return 0;
+}
+```
+
+Note that `fibonacci` makes **two** recursive calls per invocation, unlike `factorial` which makes only one. That difference has a significant impact on performance (see [Time complexity](#time-complexity) below).
+
+## The call stack
+
+When you call a recursive function, each invocation is pushed onto the **call stack** and waits until the call it made returns. Here is the full trace for `factorial(4)`:
+
+```
+factorial(4)
+  └─ 4 * factorial(3)
+           └─ 3 * factorial(2)
+                    └─ 2 * factorial(1)
+                                └─ return 1       ← base case
+                    └─ return 2 * 1 = 2
+           └─ return 3 * 2 = 6
+  └─ return 4 * 6 = 24
+```
+
+The stack grows four frames deep before unwinding. Each frame holds its own copy of `n` and a pointer back to the caller.
+
+## Time complexity
+
+| Function | Calls per invocation | Total calls for input n | Time complexity |
+|---|---|---|---|
+| `factorial(n)` | 1 | n | O(n) |
+| `fibonacci(n)` | 2 | ~2ⁿ | O(2ⁿ) |
+
+`factorial` is linear because each step reduces `n` by exactly 1. `fibonacci` is exponential because each call branches into two, and many of those branches recompute the same subproblems. `fibonacci(5)` computes `fibonacci(3)` twice, `fibonacci(2)` three times, and so on.
+
+<Note>
+  The exponential cost of naive recursive Fibonacci can be eliminated with **memoization** (caching results) or by rewriting the function iteratively. The implementation in this project is intentionally simple to illustrate the recursion concept.
+</Note>
+
+<Warning>
+  Every recursive call consumes a stack frame. For very large inputs the stack runs out of space and your program crashes with a **stack overflow**. On most systems the default stack is only a few megabytes. `factorial` hits this limit around `n ≈ 10,000`; `fibonacci` hits it much sooner due to the deep branching. For large inputs you need an iterative approach or a language/runtime with tail-call optimization.
+</Warning>

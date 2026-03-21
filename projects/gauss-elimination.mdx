@@ -1,0 +1,168 @@
+---
+title: "Gauss elimination"
+description: "Solves systems of linear equations by entering a coefficient matrix and a results vector, then calling numpy.linalg.solve."
+---
+
+`GaussSimple.py` solves a system of linear equations of the form **Ax = b**. You enter the coefficient matrix **A** and the results vector **b** interactively in the console, and the program prints the solution vector **x**.
+
+<Note>
+  Despite its name, the program delegates the actual solving to `numpy.linalg.solve` rather than implementing Gaussian elimination steps manually.
+</Note>
+
+## Prerequisites
+
+You need [NumPy](https://numpy.org/) installed:
+
+```bash
+pip install numpy
+```
+
+## How to run
+
+```bash
+python GaussSimple.py
+```
+
+The program runs once (no loop) — it collects input, solves, and exits.
+
+## Functions
+
+<AccordionGroup>
+  <Accordion title="IngresarMatriz(T1, matriz)">
+    Prompts you to fill every cell of the square coefficient matrix. `T1` is the matrix size, and `matriz` is the pre-allocated NumPy zero matrix passed in from the main script.
+
+    ```python
+    def IngresarMatriz(T1, matriz):  # Only square matrices are supported
+        for i in range(T1):
+            for j in range(T1):
+                matriz[i][j] = int(input(f"Valor en (fila: {i},columna: {j}): "))
+        return matriz
+    ```
+
+    <Note>
+      Only square matrices are supported. Both the row loop and the column loop iterate `T1` times, so rectangular inputs are not possible.
+    </Note>
+  </Accordion>
+
+  <Accordion title="IngresarRes(T1, res)">
+    Prompts you to fill the results column vector **b**. `res` is a `T × 1` NumPy zero matrix; each element corresponds to the right-hand side of one equation.
+
+    ```python
+    def IngresarRes(T1, res):  # Only square matrices are supported
+        for i in range(T1):
+            res[i][0] = int(input(f"Valor en (fila: {i},columna: {0}): "))
+        return res
+    ```
+  </Accordion>
+
+  <Accordion title="MostrarMatriz(matriz)">
+    Prints any matrix or vector row by row. The `*m` unpacking removes brackets and commas for clean output. Works for both the coefficient matrix and the solution vector.
+
+    ```python
+    def MostrarMatriz(matriz):  # Works for any matrix shape (foreach-style)
+        for m in matriz:
+            print(*m)
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Main script flow
+
+```python
+T = int(input("Ingrese el tamaño de la matriz: "))
+matriz = np.zeros((T, T))   # coefficient matrix A
+res = np.zeros((T, 1))      # results vector b
+
+print("Ingreso de coeficientes: ")
+IngresarMatriz(T, matriz)
+
+print("Ingreso de resultados: ")
+IngresarRes(T, res)
+
+print("Coeficientes: ")
+MostrarMatriz(matriz)
+
+print("Resultados: ")
+MostrarMatriz(res)
+
+print("Solucion: ")
+resultado = np.linalg.solve(matriz, res)   # Solves Ax = b
+MostrarMatriz(resultado)
+```
+
+## Worked example: 2×2 system
+
+Consider this system of two equations:
+
+```
+2x + 3y = 8
+5x +  y = 7
+```
+
+The coefficient matrix **A** and results vector **b** are:
+
+```
+A = [[2, 3],    b = [[8],
+     [5, 1]]         [7]]
+```
+
+<Steps>
+  <Step title="Enter the matrix size">
+    ```
+    Ingrese el tamaño de la matriz: 2
+    ```
+  </Step>
+
+  <Step title="Enter the coefficient matrix">
+    ```
+    Ingreso de coeficientes:
+    Valor en (fila: 0,columna: 0): 2
+    Valor en (fila: 0,columna: 1): 3
+    Valor en (fila: 1,columna: 0): 5
+    Valor en (fila: 1,columna: 1): 1
+    ```
+  </Step>
+
+  <Step title="Enter the results vector">
+    ```
+    Ingreso de resultados:
+    Valor en (fila: 0,columna: 0): 8
+    Valor en (fila: 1,columna: 0): 7
+    ```
+  </Step>
+
+  <Step title="Review the echo of your inputs">
+    ```
+    Coeficientes:
+    2.0 3.0
+    5.0 1.0
+
+    Resultados:
+    8.0
+    7.0
+    ```
+  </Step>
+
+  <Step title="Read the solution">
+    ```
+    Solucion:
+    1.0
+    2.0
+    ```
+
+    This means **x = 1** and **y = 2**. You can verify: `2(1) + 3(2) = 8` ✓ and `5(1) + 1(2) = 7` ✓.
+  </Step>
+</Steps>
+
+## Constraints and limitations
+
+| Constraint | Detail |
+|---|---|
+| Square matrices only | Both `IngresarMatriz` and `IngresarRes` iterate `T1` times in both dimensions; non-square input is not supported |
+| Integer input only | Values are cast with `int(input(...))` — decimal coefficients will raise a `ValueError` |
+| Single run | There is no loop or menu; the program exits after printing the solution |
+| NumPy required | `numpy` must be installed; the program imports it as `np` at the top of the file |
+
+<Note>
+  If the coefficient matrix is singular (i.e., the system has no unique solution), `numpy.linalg.solve` will raise a `LinAlgError`. The program does not catch this exception.
+</Note>
