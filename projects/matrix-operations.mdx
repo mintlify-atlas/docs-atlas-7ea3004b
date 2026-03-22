@@ -26,7 +26,11 @@ When the program starts, you see the following menu on every iteration:
 "  0) Salir                        "
 ```
 
-Enter `0` at any time to exit. After each operation, the terminal is cleared with `os.system('cls')` and the menu is shown again.
+Enter `0` at any time to exit. After each operation, the terminal is cleared with `os.system('cls')` (Windows) and the menu is shown again.
+
+<Note>
+  `os.system('cls')` only clears the terminal on Windows. On Linux or macOS the clear command has no effect and the menu simply reprints below the previous output.
+</Note>
 
 ## Functions
 
@@ -256,6 +260,16 @@ Enter `0` at any time to exit. After each operation, the terminal is cleared wit
         ```
         Ingrese el numero de filas de la segunda matriz: 3
         Ingrese el numero de columnas de la segunda matriz: 2
+        ```
+      </Step>
+      <Step title="Review the zero-initialized result matrix">
+        Before entering any values, the program displays the result matrix pre-filled with zeros:
+
+        ```
+        Matriz donde se guardara el resultado:
+        *   Matriz resultante   *
+        0 0
+        0 0
         ```
       </Step>
       <Step title="Fill in the first matrix (2×3)">
